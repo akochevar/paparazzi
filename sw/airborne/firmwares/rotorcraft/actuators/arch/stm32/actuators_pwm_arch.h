@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright (C) 2010 The Paparazzi Team
  *
  * This file is part of Paparazzi.
@@ -19,17 +17,16 @@
  * along with Paparazzi; see the file COPYING.  If not, write to
  * the Free Software Foundation, 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
- *
  */
 
-/*
- * STM32 PWM servos handling
+/** @file arch/stm32/actuators_pwm_arch.h
+ *  STM32 PWM servos handling
  */
 
 #ifndef ACTUATORS_PWM_ARCH_H
 #define ACTUATORS_PWM_ARCH_H
 
-#ifdef USE_SERVOS_7AND8
+#if USE_SERVOS_7AND8
 #define ACTUATORS_PWM_NB 8
 #else
 #define ACTUATORS_PWM_NB 6

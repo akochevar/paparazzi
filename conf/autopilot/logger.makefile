@@ -26,13 +26,17 @@ ifndef UART1_BAUD
 UART1_BAUD = B9600
 endif
 
+ifndef LOG_STOP_KEY
+LOG_STOP_KEY = 7
+endif
+
 
 # a configuration program to access both uart through usb
 ifeq ($(ARCH), lpc21)
 
 
-ap.CFLAGS += -DUSE_LED
-ap.srcs = sys_time.c $(SRC_ARCH)/sys_time_hw.c $(SRC_ARCH)/armVIC.c $(SRC_FIRMWARE)/main_logger.c
+ap.CFLAGS += -DUSE_LED -DPERIPHERALS_AUTO_INIT
+ap.srcs = mcu_periph/sys_time.c $(SRC_ARCH)/mcu_periph/sys_time_arch.c $(SRC_ARCH)/armVIC.c $(SRC_FIRMWARE)/main_logger.c
 
 # PPRZ message format is default
 ifndef LOG_MSG_FMT
@@ -42,6 +46,7 @@ endif
 #set the speed
 ap.CFLAGS += -DUSE_UART0 -DUART0_BAUD=$(UART0_BAUD) -DUSE_UART0_RX_ONLY -DPERIPHERALS_AUTO_INIT
 ap.CFLAGS += -DUSE_UART1 -DUART1_BAUD=$(UART1_BAUD) -DUSE_UART1_RX_ONLY
+ap.CFLAGS += -DLOG_STOP_KEY=$(LOG_STOP_KEY)
 ap.srcs += $(SRC_ARCH)/mcu_periph/uart_arch.c
 ap.srcs += mcu_periph/uart.c
 ap.srcs += $(SRC_ARCH)/mcu_arch.c
@@ -57,7 +62,7 @@ ap.CFLAGS += -D$(LOG_MSG_FMT)
 ap.CFLAGS += -DUSE_USB_HIGH_PCLK
 
 #efsl
-ap.CFLAGS += -I $(SRC_ARCH)/efsl/inc -I $(SRC_ARCH)/efsl/conf
+ap.CFLAGS += -I$(SRC_ARCH)/efsl/inc -I$(SRC_ARCH)/efsl/conf
 
 ap.srcs += $(SRC_ARCH)/efsl/src/efs.c $(SRC_ARCH)/efsl/src/plibc.c
 ap.srcs += $(SRC_ARCH)/efsl/src/disc.c $(SRC_ARCH)/efsl/src/partition.c
@@ -72,7 +77,7 @@ ap.srcs += $(SRC_ARCH)/efsl/src/interfaces/sd.c
 
 #usb mass storage
 ap.CFLAGS += -DUSE_USB_MSC
-ap.CFLAGS += -I $(SRC_ARCH)/lpcusb -I $(SRC_ARCH)/lpcusb/examples
+ap.CFLAGS += -I$(SRC_ARCH)/lpcusb -I$(SRC_ARCH)/lpcusb/examples
 
 ap.srcs += $(SRC_ARCH)/usb_msc_hw.c
 ap.srcs += $(SRC_ARCH)/lpcusb/usbhw_lpc.c $(SRC_ARCH)/lpcusb/usbcontrol.c
@@ -80,11 +85,14 @@ ap.srcs += $(SRC_ARCH)/lpcusb/usbstdreq.c $(SRC_ARCH)/lpcusb/usbinit.c
 ap.srcs += $(SRC_ARCH)/lpcusb/examples/msc_bot.c
 ap.srcs += $(SRC_ARCH)/lpcusb/examples/msc_scsi.c
 ap.srcs += $(SRC_ARCH)/lpcusb/examples/blockdev_sd.c
+ifeq ($(SPI_CHANNEL), 1)
 ap.srcs += $(SRC_ARCH)/lpcusb/examples/lpc2000_spi.c
-
+else
+ap.srcs += $(SRC_ARCH)/lpcusb/examples/lpc2000_spi0.c
+endif
 
 else
-$(error usb_tunnel currently only implemented for the lpc21)
+$(error logger currently only implemented for the lpc21)
 endif
 
 
