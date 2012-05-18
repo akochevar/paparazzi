@@ -169,6 +169,15 @@ void init_ap( void ) {
   mcu_init();
 #endif /* SINGLE_MCU */
 
+#ifdef POWER_SWITCH_LED
+  LED_INIT(POWER_SWITCH_LED);
+  LED_OFF(POWER_SWITCH_LED);
+#endif
+#ifdef AHRS_CPU_LED
+  LED_INIT(AHRS_CPU_LED);
+  LED_OFF(AHRS_CPU_LED);
+#endif
+
   /************* Sensors initialization ***************/
 #if USE_GPS
   gps_init();
@@ -582,6 +591,10 @@ void monitor_task( void ) {
 
 /*********** EVENT ***********************************************************/
 void event_task_ap( void ) {
+
+#ifndef SINGLE_MCU
+  i2c_event();
+#endif
 
 #if USE_AHRS
 #if USE_IMU

@@ -78,6 +78,7 @@ void autopilot_init(void) {
   autopilot_rc = TRUE;
   autopilot_power_switch = FALSE;
 #ifdef POWER_SWITCH_LED
+  LED_INIT(POWER_SWITCH_LED);
   LED_ON(POWER_SWITCH_LED); // POWER OFF
 #endif
   autopilot_arming_init();
@@ -93,11 +94,14 @@ void autopilot_periodic(void) {
     autopilot_detect_ground = FALSE;
   }
 #endif
-  if ( !autopilot_motors_on ||
+
+  /* set failsafe commands, if in FAILSAFE or KILL mode */
 #ifndef FAILSAFE_GROUND_DETECT
-       autopilot_mode == AP_MODE_FAILSAFE ||
+  if (autopilot_mode == AP_MODE_KILL ||
+      autopilot_mode == AP_MODE_FAILSAFE) {
+#else
+  if (autopilot_mode == AP_MODE_KILL) {
 #endif
-       autopilot_mode == AP_MODE_KILL ) {
     SetCommands(commands_failsafe,
 		autopilot_in_flight, autopilot_motors_on);
   }

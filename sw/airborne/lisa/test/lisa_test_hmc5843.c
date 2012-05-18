@@ -21,11 +21,9 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <stm32/gpio.h>
-#include <stm32/flash.h>
-#include <stm32/misc.h>
-#include <stm32/exti.h>
-#include <stm32/spi.h>
+#include <libopencm3/stm32/f1/gpio.h>
+#include <libopencm3/stm32/exti.h>
+#include <libopencm3/stm32/spi.h>
 
 /*
  *           lisa/L   lisa/M
@@ -41,6 +39,7 @@
 #include "led.h"
 
 #include "mcu_periph/uart.h"
+#include "mcu_periph/i2c.h"
 #include "peripherals/hmc5843.h"
 #include "my_debug_servo.h"
 #include "math/pprz_algebra_int.h"
@@ -60,7 +59,8 @@ struct i2c_transaction t2;
 static uint8_t mag_state = 0;
 static volatile uint8_t mag_ready_for_read = FALSE;
 static uint8_t reading_mag = FALSE;
-extern void exti9_5_irq_handler(void);
+
+extern void exti9_5_isr(void);
 
 
 int main(void) {
@@ -91,15 +91,15 @@ static inline void main_periodic_task( void ) {
   RunOnceEvery(256,
     {
       DOWNLINK_SEND_I2C_ERRORS(DefaultChannel, DefaultDevice,
-			       &i2c2_errors.ack_fail_cnt,
-			       &i2c2_errors.miss_start_stop_cnt,
-			       &i2c2_errors.arb_lost_cnt,
-			       &i2c2_errors.over_under_cnt,
-			       &i2c2_errors.pec_recep_cnt,
-			       &i2c2_errors.timeout_tlow_cnt,
-			       &i2c2_errors.smbus_alert_cnt,
-			       &i2c2_errors.unexpected_event_cnt,
-			       &i2c2_errors.last_unexpected_event);
+			       &i2c2.errors->ack_fail_cnt,
+			       &i2c2.errors->miss_start_stop_cnt,
+			       &i2c2.errors->arb_lost_cnt,
+			       &i2c2.errors->over_under_cnt,
+			       &i2c2.errors->pec_recep_cnt,
+			       &i2c2.errors->timeout_tlow_cnt,
+			       &i2c2.errors->smbus_alert_cnt,
+			       &i2c2.errors->unexpected_event_cnt,
+			       &i2c2.errors->last_unexpected_event);
     });
   if (mag_state == 2) send_config();
 
@@ -212,6 +212,10 @@ static void send_config(void) {
 
 
 static inline void main_init_hw( void ) {
+
+#warning "This has to be ported to libopencm3 or using the actual driver!"
+
+#if 0
   /* set mag ss as floating input (on PC12)    = shorted to I2C2 sda ----------*/
   /* set mag reset as floating input (on PC13) = shorted to I2C2 scl ----------*/
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
@@ -245,16 +249,16 @@ static inline void main_init_hw( void ) {
 
   DEBUG_SERVO1_INIT();
   DEBUG_SERVO2_INIT();
+#endif
 
 }
 
 
 
 
-void exti9_5_irq_handler(void) {
+void exti9_5_isr(void) {
   /* clear EXTI */
-  if(EXTI_GetITStatus(EXTI_Line5) != RESET)
-    EXTI_ClearITPendingBit(EXTI_Line5);
+  exti_reset_request(EXTI5);
 
   if (mag_state == INITIALIZED) mag_ready_for_read = TRUE;
 }

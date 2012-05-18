@@ -21,11 +21,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <stm32/rcc.h>
-#include <stm32/gpio.h>
+//#include <libopencm3/stm32/f1/rcc.h>
+//#include <libopencm3/stm32/f1/gpio.h>
 
-#include <stm32/flash.h>
-#include <stm32/misc.h>
+//#include <libopencm3/stm32/f1/flash.h>
+
+//#include <libopencm3/cm3/common.h>
 
 #include BOARD_CONFIG
 #include "mcu.h"
@@ -51,6 +52,10 @@ int main(void) {
 static inline void main_init( void ) {
   mcu_init();
   sys_time_register_timer((1./PERIODIC_FREQUENCY), NULL);
+  LED_INIT(1);
+  LED_INIT(2);
+  LED_OFF(1);
+  LED_OFF(2);
 }
 
 static inline void main_periodic( void ) {
